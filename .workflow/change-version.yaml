@@ -1,0 +1,29 @@
+name: Bump Version on Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  bump-version:
+    if: ${{ !github.event.release.prerelease }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Update version in pyproject.toml
+        run: sed -i '' "s/^version = .*/version = \"${{ github.ref_name }}\"/" pyproject.toml
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          commit-message: "chore: bump version to ${{ env.VERSION }}"
+          title: "chore: bump version to ${{ github.ref_name }}"
+          body: "This PR updates the version in pyproject.toml to ${{ github.ref_name }}."
+          branch: "release-bump-version-${{ github.ref_name }}"
+          base: "main"
